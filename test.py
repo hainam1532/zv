@@ -14,26 +14,33 @@ ips = ["10.30.0.39","10.30.0.40","10.30.0.79","10.30.0.80","10.30.0.123","10.30.
 #ips = ['10.30.0.78']
 
 
-def test_voice(ip):
+def test_voice(ip, voice_id):
     conn = None
     zk = ZK(ip, port=4370)
     try:
         conn = zk.connect()
-        
-        for i in range(0,65):
-            print ("test_voice, %i" % i)
-            zk.test_voice(i)
-        # zk.test_voice(18)
-        print("Voice test successful for {}".format(ip))
+        print("Testing voice {} for {}".format(voice_id, ip))
+        zk.test_voice(voice_id)
+        print("Voice test successful for {} - Voice {}".format(ip, voice_id))
     except Exception as e:
-        print("Error while testing voice for {}: {}".format(ip, e))
+        print("Error while testing voice for {} - Voice {}: {}".format(ip, voice_id, e))
     finally:
         if conn:
             conn.disconnect()
 
+def test_voice_threaded(ip):
+    threads = []
+    for i in range(65):
+        thread = threading.Thread(target=test_voice, args=(ip, i))
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
 threads = []
 for ip in ips:
-    thread = threading.Thread(target=test_voice, args=(ip,))
+    thread = threading.Thread(target=test_voice_threaded, args=(ip,))
     threads.append(thread)
     thread.start()
 
